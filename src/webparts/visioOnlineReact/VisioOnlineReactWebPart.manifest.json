@@ -1,0 +1,27 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "adeddf89-85ca-4018-958d-72a5ce3b1f68",
+  "alias": "VisioOnlineReactWebPart",
+  "componentType": "WebPart",
+
+  // The "*" signifies that the version should be taken from the package.json
+  "version": "*",
+  "manifestVersion": 2,
+
+  // If true, the component can only be installed on sites where Custom Script is allowed.
+  // Components that allow authors to embed arbitrary script code should set this to true.
+  // https://support.office.com/en-us/article/Turn-scripting-capabilities-on-or-off-1f2c515f-5d7e-448a-9fd7-835da935584f
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart"],
+
+  "preconfiguredEntries": [{
+    "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
+    "group": { "default": "Other" },
+    "title": { "default": "VisioOnlineReact" },
+    "description": { "default": "VisioOnlineReact description" },
+    "iconImageUrl": "data:image/png;base64,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",
+    "properties": {
+      "documentUrl": ""
+    }
+  }]
+}

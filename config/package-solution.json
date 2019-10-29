@@ -1,0 +1,13 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "visio-online-react-webpart-client-side-solution",
+    "id": "083f65d9-6e17-4ae9-b53a-ab373c584f07",
+    "version": "0.5.0.0",
+    "includeClientSideAssets": true,
+    "isDomainIsolated": false
+  },
+  "paths": {
+    "zippedPackage": "solution/visio-online-react-webpart.sppkg"
+  }
+}
