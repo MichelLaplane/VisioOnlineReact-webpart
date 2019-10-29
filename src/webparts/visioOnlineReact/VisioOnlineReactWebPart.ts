@@ -15,8 +15,9 @@ import VisioOnlineReact from './components/VisioOnlineReact';
 import { IVisioOnlineReactProps } from './components/IVisioOnlineReactProps';
 
 export interface IVisioOnlineReactWebPartProps {
-    visioService: VisioService;
-    documentUrl: string;  
+  visioService: VisioService;
+  documentUrl: string;
+  zoomLevel: string;
 }
 
 export default class VisioOnlineReactWebPart extends BaseClientSideWebPart<IVisioOnlineReactWebPartProps> {
@@ -36,7 +37,8 @@ export default class VisioOnlineReactWebPart extends BaseClientSideWebPart<IVisi
       VisioOnlineReact,
       {
         visioService: this._visioService,
-        documentUrl: this.properties.documentUrl
+        documentUrl: this.properties.documentUrl,
+        zoomLevel: this.properties.zoomLevel
       }
     );
 
@@ -64,6 +66,9 @@ export default class VisioOnlineReactWebPart extends BaseClientSideWebPart<IVisi
               groupFields: [
                 PropertyPaneTextField('documentUrl', {
                   label: strings.DocumentUrlLabel
+                }),
+                PropertyPaneTextField('zoomLevel', {
+                  label: strings.ZoomLevelLabel
                 })
               ]
             }

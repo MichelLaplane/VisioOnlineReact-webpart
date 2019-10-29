@@ -2,6 +2,7 @@ declare interface IVisioOnlineReactWebPartStrings {
   PropertyPaneDescription: string;
   BasicGroupName: string;
   DocumentUrlLabel: string;
+  ZoomLevelLabel: string;
 }
 
 declare module 'VisioOnlineReactWebPartStrings' {

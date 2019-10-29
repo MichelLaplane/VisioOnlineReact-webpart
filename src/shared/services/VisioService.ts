@@ -10,6 +10,7 @@ export class VisioService {
   private _webPartContext: IWebPartContext;
 
   private _url = "";
+  private _zoomLevel: string = "100";
   /**
    * gets the url of the Visio document to embed
    * @returns a string with the document url
@@ -62,17 +63,26 @@ export class VisioService {
    * @returns returns a promise
    */
   private async _init(): Promise<any> {
-    // initialize communication between the developer frame and the Visio Online frame
-    this._session = new OfficeExtension.EmbeddedSession(
-      this._url, {
+    // Remove element for preventing to have multiple iFrame
+    let docRootElement = document.getElementById("iframeHost");
+    if (docRootElement != null) {
+      for (var i = 0; i < docRootElement.childNodes.length; ++i) {
+        docRootElement.removeChild(docRootElement.childNodes[i]);
+      }
+      console.log("Document Url = " + this._url);
+      console.log("Document Url with wdzoom = " + this._url + '&wdzoom=' + this._zoomLevel);      
+      // initialize communication between the developer frame and the Visio Online frame
+      this._session = new OfficeExtension.EmbeddedSession(
+        this._url + '&wdzoom=' + this._zoomLevel, {
         id: "embed-iframe",
         container: document.getElementById("iframeHost"),
         width: "100%",
         height: "600px"
       }
-    );
-    await this._session.init();
-    console.log("Session successfully initialized");
+      );
+      await this._session.init();
+      console.log("Session successfully initialized");
+    }
   }
 
   /**
@@ -285,14 +295,14 @@ export class VisioService {
    * @param docUrl embed url of the document
    * @returns returns a promise
    */
-  public load = async (docUrl: string): Promise<void> => {
+  public load = async (docUrl: string, zoomLevel: string): Promise<void> => {
     console.log("Start loading Visio data");
 
     try {
 
       // sets the url, modifying it if required - uses set method to re-use logic
       this.url = docUrl;
-
+      this._zoomLevel = zoomLevel;
       // init
       await this._init();
 
