@@ -1,13 +1,13 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
-  "solution": {
-    "name": "VisioOnline React WebPart",
-    "id": "083f65d9-6e17-4ae9-b53a-ab373c584f07",
-    "version": "0.5.3.0",
-    "includeClientSideAssets": true,
-    "isDomainIsolated": false
-  },
-  "paths": {
-    "zippedPackage": "solution/visio-online-react-webpart.sppkg"
-  }
+    "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+    "solution": {
+        "name": "VisioOnline React WebPart",
+        "id": "083f65d9-6e17-4ae9-b53a-ab373c584f07",
+        "version": "0.5.4.0",
+        "includeClientSideAssets": true,
+        "isDomainIsolated": false
+    },
+    "paths": {
+        "zippedPackage": "solution/visio-online-react-webpart.sppkg"
+    }
 }

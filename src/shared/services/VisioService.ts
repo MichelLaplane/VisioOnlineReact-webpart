@@ -1,9 +1,9 @@
-
 // Original Code from Joel Rodrigues
 // https://github.com/SharePoint/sp-dev-fx-webparts/tree/master/samples/react-visio
 //
 import { find } from '@microsoft/sp-lodash-subset';
 import { IWebPartContext } from '@microsoft/sp-webpart-base';
+import { Dictionary } from 'lodash';
 
 export class VisioService {
 
@@ -36,6 +36,8 @@ export class VisioService {
   private _shapes: Visio.Shape[] = [];
   private _selectedShape: Visio.Shape;
 
+  private _overlayedShape: Dictionary<string> = {};
+
   private _documentLoadComplete = false;
   private _pageLoadComplete = false;
   /**
@@ -59,6 +61,39 @@ export class VisioService {
   }
 
   /**
+ * initializes the embed session and attaches event handlers
+ * this is the function that should be called to start the session
+ * @param docUrl embed url of the document
+ * @returns returns a promise
+ */
+  public load = async (docUrl: string, zoomLevel?: string): Promise<void> => {
+    console.log("Start loading Visio data");
+
+    try {
+
+      // sets the url, modifying it if required - uses set method to re-use logic
+      this.url = docUrl;
+      if (zoomLevel != undefined)
+        this._zoomLevel = zoomLevel;
+      // init
+      await this._init();
+
+      // add custom onDocumentLoadComplete event handler
+      await this._addCustomEventHandlers();
+
+      // trigger document and page loaded event handlers after 3 seconds in case Visio fails to trigger them
+      // this is randomly happening on chrome, but seems to always fail on IE...
+      setTimeout(() => {
+        this._onDocumentLoadComplete(null);
+        this._onPageLoadComplete(null);
+      }, 3000);
+
+    } catch (error) {
+      this.logError(error);
+    }
+  }
+
+  /**
    * initialize session by embedding the Visio diagram on the page
    * @returns returns a promise
    */
@@ -70,7 +105,7 @@ export class VisioService {
         docRootElement.removeChild(docRootElement.childNodes[i]);
       }
       console.log("Document Url = " + this._url);
-      console.log("Document Url with wdzoom = " + this._url + '&wdzoom=' + this._zoomLevel);      
+      console.log("Document Url with wdzoom = " + this._url + '&wdzoom=' + this._zoomLevel);
       // initialize communication between the developer frame and the Visio Online frame
       this._session = new OfficeExtension.EmbeddedSession(
         this._url + '&wdzoom=' + this._zoomLevel, {
@@ -181,6 +216,41 @@ export class VisioService {
   }
 
   /**
+   * get all shapes from page
+   * @returns returns a promise
+   */
+  private _getAllShapes = async (): Promise<Visio.Shape[]> => {
+
+    console.log("Getting all shapes");
+
+    try {
+      let shapes: Visio.Shape[];
+
+      await Visio.run(this._session, async (context: Visio.RequestContext) => {
+        const page: Visio.Page = context.document.getActivePage();
+        const shapesCollection: Visio.ShapeCollection = page.shapes;
+        shapesCollection.load();
+        await context.sync();
+
+        // load all required properties for each shape
+        for (let i: number = 0; i < shapesCollection.items.length; i++) {
+          shapesCollection.items[i].shapeDataItems.load();
+          shapesCollection.items[i].hyperlinks.load();
+        }
+        await context.sync();
+
+        shapes = shapesCollection.items;
+
+        return shapes;
+      });
+
+      return shapes;
+    } catch (error) {
+      this.logError(error);
+    }
+  }
+
+  /**
    * method executed after a on selection change event is triggered
    * @param args event arguments
    * @returns returns a promise
@@ -254,68 +324,75 @@ export class VisioService {
     }
   }
 
-  /**
-   * get all shapes from page
-   * @returns returns a promise
-   */
-  private _getAllShapes = async (): Promise<Visio.Shape[]> => {
 
-    console.log("Getting all shapes");
+
+
+
+  // ========================================================
+  // Highlight a Shape
+  // @param shapeName name of the shape to higlight
+  // @param bHighlight higlight if true un-highlight if false
+  // @returns returns a promise
+  // ========================================================
+  public highlightShape = async (shapeName: string, bHighlight: boolean): Promise<void> => {
+    console.log("Start highlightShape : " + shapeName);
 
     try {
-      let shapes: Visio.Shape[];
-
+      var shapeID: any = shapeName.substring(shapeName.lastIndexOf(".") + 1);
+      console.log("shapeID : " + shapeID);
       await Visio.run(this._session, async (context: Visio.RequestContext) => {
-        const page: Visio.Page = context.document.getActivePage();
-        const shapesCollection: Visio.ShapeCollection = page.shapes;
+        const activePage: Visio.Page = context.document.getActivePage();
+        const shapesCollection: Visio.ShapeCollection = activePage.shapes;
         shapesCollection.load();
         await context.sync();
-
-        // load all required properties for each shape
-        for (let i: number = 0; i < shapesCollection.items.length; i++) {
-          shapesCollection.items[i].shapeDataItems.load();
-          shapesCollection.items[i].hyperlinks.load();
-        }
+        console.log("shapesCollection.load");
+        const shape: Visio.Shape = shapesCollection.items[shapeID - 1];
+        shape.load();
         await context.sync();
-
-        shapes = shapesCollection.items;
-
-        return shapes;
+        console.log("Shape founded : " + shape.name);
+        if (bHighlight == true)
+          shape.view.highlight = { color: "#FF0000", width: 2 };
+        else
+          shape.view.highlight = null;
+        await context.sync();
       });
-
-      return shapes;
     } catch (error) {
       this.logError(error);
     }
   }
 
-  /**
-   * initializes the embed session and attaches event handlers
-   * this is the function that should be called to start the session
-   * @param docUrl embed url of the document
-   * @returns returns a promise
-   */
-  public load = async (docUrl: string, zoomLevel: string): Promise<void> => {
-    console.log("Start loading Visio data");
-
+  // ========================================================
+  // Add an image overlay to a Shape
+  // @param shapeName name of the shape to higlight
+  // @param bHighlight higlight if true un-highlight if false
+  // @returns returns a promise
+  // ========================================================
+  public addOverlay = async (shapeName: string, bAddOverlay: boolean): Promise<void> => {
+    console.log("Start highlightShape : " + shapeName);
     try {
-
-      // sets the url, modifying it if required - uses set method to re-use logic
-      this.url = docUrl;
-      this._zoomLevel = zoomLevel;
-      // init
-      await this._init();
-
-      // add custom onDocumentLoadComplete event handler
-      await this._addCustomEventHandlers();
-
-      // trigger document and page loaded event handlers after 3 seconds in case Visio fails to trigger them
-      // this is randomly happening on chrome, but seems to always fail on IE...
-      setTimeout(() => {
-        this._onDocumentLoadComplete(null);
-        this._onPageLoadComplete(null);
-      }, 3000);
-
+      var shapeID: any = shapeName.substring(shapeName.lastIndexOf(".") + 1);
+      //      console.log("shapeID : " + shapeID);
+      await Visio.run(this._session, async (context: Visio.RequestContext) => {
+        const activePage: Visio.Page = context.document.getActivePage();
+        const shapesCollection: Visio.ShapeCollection = activePage.shapes;
+        shapesCollection.load();
+        await context.sync();
+        const shape: Visio.Shape = shapesCollection.items[shapeID - 1];
+        shape.load();
+        if (bAddOverlay) {
+          var overlayId = shape.view.addOverlay("Image", "https://www.microsoft.com/favicon.ico?v2", "Center", "Middle", 25, 25);
+          await context.sync();
+          console.log("overlayId : " + overlayId.value.toString());
+          this._overlayedShape[shape.name] = overlayId.value.toString();
+        }
+        else {
+          var strId = this._overlayedShape[shape.name];
+          //          console.log("strId : " + strId);
+          shape.view.removeOverlay(parseInt(strId));
+          await context.sync();
+          delete this._overlayedShape[shape.name];
+        }
+      });
     } catch (error) {
       this.logError(error);
     }

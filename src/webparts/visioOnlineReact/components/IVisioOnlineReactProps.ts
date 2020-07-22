@@ -1,7 +1,11 @@
-import { VisioService } from "../../../shared/services";
+import { VisioService } from "../../../shared/services/VisioService";
 
 export interface IVisioOnlineReactProps {
-    visioService: VisioService;
-    documentUrl: string;
-  zoomLevel:string; 
+  description: string;
+  documentUrl: string;
+  zoomLevel: string;
+  shapeName: string;
+  bHighLight: boolean;
+  bOverlay: boolean;
+  visioService: VisioService;
 }
