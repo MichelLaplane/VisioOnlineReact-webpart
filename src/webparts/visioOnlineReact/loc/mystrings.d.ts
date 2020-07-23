@@ -1,10 +1,16 @@
 declare interface IVisioOnlineReactWebPartStrings {
   PropertyPaneDescription: string;
   BasicGroupName: string;
+  HighlightGroupName: string;
+  OverlayGroupName: string;
+  ZoomLevelLabel: string;
+  showShapeNameFlyoutLabel:string;
+  overlayTextLabel:string;
+  overlayWidthLabel:string;
+  overlayHeightLabel:string;
   DescriptionFieldLabel: string;
   DocumentUrlLabel: string;
-  ZoomLevelLabel: string;
-  ShapeNameLabel: string;
+  ShapeNameLabel:string;
 }
 
 declare module 'VisioOnlineReactWebPartStrings' {

@@ -1,6 +1,7 @@
 // Original Code from Joel Rodrigues
 // https://github.com/SharePoint/sp-dev-fx-webparts/tree/master/samples/react-visio
-//
+// Modified by Michel Laplane
+// https://github.com/MichelLaplane/VisioOnlineReact-webpart
 import { find } from '@microsoft/sp-lodash-subset';
 import { IWebPartContext } from '@microsoft/sp-webpart-base';
 import { Dictionary } from 'lodash';
@@ -40,6 +41,13 @@ export class VisioService {
 
   private _documentLoadComplete = false;
   private _pageLoadComplete = false;
+
+  private _foundedShape: Visio.Shape;
+  private _enteredShape: Visio.Shape;
+  private _leavedShape: Visio.Shape;
+
+  private _bShowShapeNameFlyout: boolean;
+
   /**
    * gets a pre-loaded collection of relevant shapes from the diagram
    */
@@ -145,7 +153,16 @@ export class VisioService {
           doc.onSelectionChanged.add(
             this._onSelectionChanged
           );
-
+        // on mouse enter
+        const onShapeMouseEnterEventResult: OfficeExtension.EventHandlerResult<Visio.ShapeMouseEnterEventArgs> =
+          doc.onShapeMouseEnter.add(
+            this._onShapeMouseEnter
+          );
+        // on mouse leave
+        const onShapeMouseLeaveEventResult: OfficeExtension.EventHandlerResult<Visio.ShapeMouseEnterEventArgs> =
+          doc.onShapeMouseLeave.add(
+            this._onShapeMouseLeave
+          );
         await context.sync();
         console.log("Document Load Complete handler attached");
       });
@@ -324,9 +341,84 @@ export class VisioService {
     }
   }
 
+  // ========================================================
+  // ShapeMouseEnter event
+  // @param args
+  // @returns returns a promise
+  // ========================================================
+  private _onShapeMouseEnter = async (args: Visio.ShapeMouseEnterEventArgs): Promise<void> => {
+    try {
+      if (this._bShowShapeNameFlyout == true) {
+        const enteredShapeName: string = args.shapeName;
+        console.log("_onShapeMouseEnter enteredShapeName = " + enteredShapeName);
+        await this.getShapeFromName(enteredShapeName);
+        this._enteredShape = this._foundedShape;
+        console.log("Entered Shape = " + this._enteredShape.name);
+        await this.addOverlay(this._enteredShape.name, true, "Text", enteredShapeName);
+        console.log("_onShapeMouseEnter end");
+      }
+    }
+    catch (error) {
+      this.logError(error);
+    }
+  }
 
+  // ========================================================
+  // ShapeMouseLeave event
+  // @param args
+  // @returns returns a promise
+  // ========================================================
+  private _onShapeMouseLeave = async (args: Visio.ShapeMouseLeaveEventArgs): Promise<void> => {
+    try {
+      if (this._bShowShapeNameFlyout == true) {
+        const leavedShapeName: string = args.shapeName;
+        console.log("_onShapeMouseLeave leavedShapeName = " + leavedShapeName);
+        await this.getShapeFromName(leavedShapeName);
+        this._leavedShape = this._foundedShape;
+        console.log("Leaved Shape = " + this._leavedShape.name);
+        await this.addOverlay(this._leavedShape.name, false, "Text", leavedShapeName);
+        console.log("_onShapeMouseLeave end");
+      }
+    }
+    catch (error) {
+      this.logError(error);
+    }
+  }
 
+  // ========================================================
+  // Get a shape by its name
+  // @param shapeName name of the shape to retrieve
+  // @returns returns a promise
+  // ========================================================
+  private getShapeFromName = async (shapeName: string): Promise<any> => {
+    try {
+      console.log("getShapeFromName entrée");
+      var shapeID: any = shapeName.substring(shapeName.lastIndexOf(".") + 1);
+      await Visio.run(this._session, async (context: Visio.RequestContext) => {
+        const activePage: Visio.Page = context.document.getActivePage();
+        const shapesCollection: Visio.ShapeCollection = activePage.shapes;
+        shapesCollection.load();
+        await context.sync();
+        //        const shape: Visio.Shape = shapesCollection.items[shapeID - 1];
+        const shape: Visio.Shape = shapesCollection.getItem(shapeName);
+        shape.load();
+        this._foundedShape = shape;
+        console.log("_getShapeFromName sortie");
+      });
+    }
+    catch (error) {
+      this.logError(error);
+    }
+  }
 
+  // ========================================================
+  // Set options of the service
+  // @param wether to display the Shapename flyout or not
+  // @returns returns a promise
+  // ========================================================
+  public Options = async (bShowShapeNameFlyout: boolean): Promise<void> => {
+    this._bShowShapeNameFlyout = bShowShapeNameFlyout;
+  }
 
   // ========================================================
   // Highlight a Shape
@@ -338,15 +430,13 @@ export class VisioService {
     console.log("Start highlightShape : " + shapeName);
 
     try {
-      var shapeID: any = shapeName.substring(shapeName.lastIndexOf(".") + 1);
-      console.log("shapeID : " + shapeID);
       await Visio.run(this._session, async (context: Visio.RequestContext) => {
         const activePage: Visio.Page = context.document.getActivePage();
         const shapesCollection: Visio.ShapeCollection = activePage.shapes;
         shapesCollection.load();
         await context.sync();
         console.log("shapesCollection.load");
-        const shape: Visio.Shape = shapesCollection.items[shapeID - 1];
+        const shape: Visio.Shape = shapesCollection.getItem(shapeName);        
         shape.load();
         await context.sync();
         console.log("Shape founded : " + shape.name);
@@ -367,27 +457,49 @@ export class VisioService {
   // @param bHighlight higlight if true un-highlight if false
   // @returns returns a promise
   // ========================================================
-  public addOverlay = async (shapeName: string, bAddOverlay: boolean): Promise<void> => {
-    console.log("Start highlightShape : " + shapeName);
+  public addOverlay = async (shapeName: string, bAddOverlay: boolean, overlayType: string, strOverlay?: string,
+    strWidth?: string, strHeight?: string): Promise<void> => {
+    var overlayId;
+
     try {
-      var shapeID: any = shapeName.substring(shapeName.lastIndexOf(".") + 1);
-      //      console.log("shapeID : " + shapeID);
+      var strHtml = ((strOverlay != "") && (strOverlay != undefined)) ? strOverlay : this.getHtmlFlyOut();
+      var strText = ((strOverlay != "") && (strOverlay != undefined)) ? strOverlay : this.getTextFlyOut();
+      var strImage = ((strOverlay != "") && (strOverlay != undefined)) ? strOverlay : this.getImageFlyOut();
+      var width = ((strWidth != "") && (strWidth != undefined)) ? parseInt(strWidth) : 50;
+      var height = ((strHeight != "") && (strHeight != undefined)) ? parseInt(strHeight) : 50;
       await Visio.run(this._session, async (context: Visio.RequestContext) => {
         const activePage: Visio.Page = context.document.getActivePage();
         const shapesCollection: Visio.ShapeCollection = activePage.shapes;
         shapesCollection.load();
         await context.sync();
-        const shape: Visio.Shape = shapesCollection.items[shapeID - 1];
+        const shape: Visio.Shape = shapesCollection.getItem(shapeName);
         shape.load();
         if (bAddOverlay) {
-          var overlayId = shape.view.addOverlay("Image", "https://www.microsoft.com/favicon.ico?v2", "Center", "Middle", 25, 25);
+          switch (overlayType) {
+            case "Text":
+              console.log("strText : " + strText);
+              overlayId = shape.view.addOverlay("Text", strText, "Center", "Middle", width, height);
+              break;
+            case "Image":
+              console.log("strImage : " + strImage);
+              overlayId = shape.view.addOverlay("Image", strImage, "Center", "Middle", width, height);
+              break;
+            case "Html":
+              console.log("strHtml : " + strHtml);
+              overlayId = shape.view.addOverlay("Html", strHtml, "Center", "Middle", width, height);
+              break;
+            default:
+              overlayId = shape.view.addOverlay("Text", strText, "Center", "Middle", width, height);
+              break;
+          }
           await context.sync();
           console.log("overlayId : " + overlayId.value.toString());
           this._overlayedShape[shape.name] = overlayId.value.toString();
         }
         else {
+          await context.sync();
           var strId = this._overlayedShape[shape.name];
-          //          console.log("strId : " + strId);
+          console.log("strId : " + strId);
           shape.view.removeOverlay(parseInt(strId));
           await context.sync();
           delete this._overlayedShape[shape.name];
@@ -397,6 +509,23 @@ export class VisioService {
       this.logError(error);
     }
   }
+
+
+  private getHtmlFlyOut = (): string => {
+    var retVal = "";
+    retVal = "https://www.bing.com/";
+    return retVal;
+  }
+
+  private getTextFlyOut = (): string => {
+    var retVal = "My text";
+    return retVal;
+  }
+
+  private getImageFlyOut = (): string => {
+    var retVal = "https://www.microsoft.com/favicon.ico?v2";
+    return retVal;
+  }    
 
   /**
    * generate embed url for a document

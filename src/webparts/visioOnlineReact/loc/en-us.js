@@ -1,10 +1,16 @@
 define([], function () {
   return {
     "PropertyPaneDescription": "Description",
-    "BasicGroupName": "VisioOnline React 0.5.3.0",
+    "BasicGroupName": "General",
+    "HighlightGroupName": "Highlight",
+    "OverlayGroupName": "Overlay",
+    "ZoomLevelLabel" : "Zoom level",
+    "showShapeNameFlyoutLabel": "ShapeName flyout",
+    "overlayTextLabel": "OverlayText",
+    "overlayWidthLabel": "Width",
+    "overlayHeightLabel": "Height",
     "DescriptionFieldLabel": "Description Field",
-    "DocumentUrlLabel": "Document Url",
-    "ZoomLevelLabel": "Zoom level",
+    "DocumentUrlLabel": "Document Url",
     "ShapeNameLabel": "ShapeName"
   }
 });
