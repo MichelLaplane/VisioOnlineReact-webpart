@@ -1,5 +1,4 @@
 ## Visio-online-react-webpart
-
 This project implement a SPFx WebPart using VisioOnline JS API.
 It gives you some guideline to play with Visio Online (Visio for the web) inside a SharePoint Page.
 
