@@ -115,7 +115,7 @@ export default class VisioOnlineReactWebPart extends BaseClientSideWebPart<IVisi
                   label: strings.DescriptionFieldLabel
                 }),
                 PropertyPaneLink('', {
-                  href: 'https://docs.microsoft.com/fr-fr/javascript/api/visio?view=visio-js-1.1',
+                  href: 'https://docs.microsoft.com/javascript/api/visio?view=visio-js-1.1',
                   text: 'Visio JS API reference',
                   target: '_blank',
                   popupWindowProps: {
