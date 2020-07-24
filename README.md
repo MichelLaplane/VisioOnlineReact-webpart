@@ -1,10 +1,10 @@
 ## Visio-online-react-webpart
 This project implement a SPFx WebPart using VisioOnline JS API.
-It gives you some guideline to play with Visio Online (Visio for the web) inside a SharePoint Page.
+It gives you some guidelines to play with Visio Online (Visio for the web) inside a SharePoint Page.
 
-You can use it directly for creating a sharePoint Package that you can installa on your M365 tenant.
+You can use it directly for creating a sharePoint Package that you can install on your M365 tenant.
 
-You can also run it in Visual studio Code in debug mose using the Online Workbench of your M365 tenant
+You can also run it in Visual studio Code in debug mode using the Online Workbench of your M365 tenant.
 
 Screen shot 1
 ![alt text](https://user-images.githubusercontent.com/15141659/88371866-243cb180-cd95-11ea-8c1c-c46b24c3d7b8.png)
