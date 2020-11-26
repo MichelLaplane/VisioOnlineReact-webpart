@@ -48,6 +48,8 @@ export class VisioService {
 
   private _bShowShapeNameFlyout: boolean;
 
+  public _isControlKeyPressed:boolean;
+
   /**
    * gets a pre-loaded collection of relevant shapes from the diagram
    */

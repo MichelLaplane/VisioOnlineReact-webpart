@@ -3,7 +3,7 @@
     "solution": {
         "name": "VisioOnline React WebPart",
         "id": "083f65d9-6e17-4ae9-b53a-ab373c584f07",
-        "version": "0.6.0.0",
+        "version": "0.6.2.0",
         "includeClientSideAssets": true,
         "isDomainIsolated": false
     },
