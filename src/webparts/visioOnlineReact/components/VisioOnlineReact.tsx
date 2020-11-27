@@ -11,10 +11,6 @@ export default class VisioOnlineReact extends React.Component<IVisioOnlineReactP
 
     // set delegate functions that will be used to pass the values from the Visio service to the component
     // this.props.visioService.onSelectionChanged = this._onSelectionChanged;
-    this.props.visioService._isControlKeyPressed = false;
-    // this.state = {
-    //   isControlKeyPressed: false
-    // };
   }
 
 
@@ -26,45 +22,10 @@ export default class VisioOnlineReact extends React.Component<IVisioOnlineReactP
     );
   }
   
-    /**
-   * method executed after a on selection change event is triggered
-   * @param selectedShape the shape selected by the user on the Visio diagram
-   */
-  // private _onSelectionChanged = (selectedShape: Visio.Shape): void => {
-
-  //   console.log("Selected shape: ", selectedShape);
-  //   console.log("Selected shape name: ", selectedShape.name);
-
-  //   this.setState({
-  //     isControlKeyPressed: true
-  //   });
-  // }
-
-  public handleKeyPressDown(e) {
-    this.state= {currentKey: e.keyCode};
-    console.log('You just pressed a key!');
-        if(e.keyCode === 17) {
-      console.log('You just pressed Control!');
-      this.props.visioService._isControlKeyPressed = true;
-    }
-  }
-
-  public handleKeyPressUp(e) {
-    this.state= {currentKey: e.keyCode};
-    console.log('You just released a key!');
-        if(e.keyCode === 17) {
-      console.log('You just released Control!');
-      this.props.visioService._isControlKeyPressed = true;
-    }
-  }
 
   public componentWillUnmount() {
-    document.removeEventListener('keydown', this.handleKeyPressDown);
-    document.removeEventListener('keyup', this.handleKeyPressUp);
   }
   public componentDidMount() {
-    document.addEventListener('keydown', this.handleKeyPressDown);
-    document.addEventListener('keyup', this.handleKeyPressUp);
         if (this.props.documentUrl) {
       this.props.visioService.load(this.props.documentUrl, this.props.zoomLevel);
     }
